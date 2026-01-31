@@ -5,6 +5,8 @@
 **SlayViber** is a C++ OOP simulation project inspired by the rise of social video platforms during the COVID era (e.g., TikTok).
 Instead of building a full platform, this project models the **core user behavior** of a fictional app called **SlayVibe** using a `SlayViber` class and a **driver program** (`driver.cpp`) to test and demonstrate functionality.
 
+The project was developed as part of a university programming assignment and follows all required specifications, while also including additional validation and testing utilities. Since it was essential for me to use Georgian language throughout the whole project, most of the words are in Georgian instead of English.
+
 The simulation supports:
 
 * registered vs. unregistered users
