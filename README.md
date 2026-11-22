@@ -1,192 +1,54 @@
-# SlayViber (SlayVibe) — User Simulation Model (OOP)
+# SlayViber
 
-## 📌 Overview
+A C++ class that models a user of a made-up short-video app called SlayVibe: registration, profile visits, followers, livestreams and restrictions. Written for a university assignment.
 
-**SlayViber** is a C++ OOP simulation project inspired by the rise of social video platforms during the COVID era (e.g., TikTok).
-Instead of building a full platform, this project models the **core user behavior** of a fictional app called **SlayVibe** using a `SlayViber` class and a **driver program** (`driver.cpp`) to test and demonstrate functionality.
+Method names and console messages are partly Georgian written in Latin letters.
 
-The project was developed as part of a university programming assignment and follows all required specifications, while also including additional validation and testing utilities. Since it was essential for me to use Georgian language throughout the whole project, most of the words are in Georgian instead of English.
+## What it does
 
-The simulation supports:
+- **Guests and registered users.** The default constructor makes an unregistered guest with a generated name such as `user 4821`. The other constructor takes a username, a password and, optionally, a follower count and a restriction flag.
+- **Unique usernames.** Every username is kept in a list shared by all objects. A constructor call with a taken name prints a warning and gives the user a generated name instead.
+- **Visit.** `visit(other)` adds the visitor's username to the other user's visitor list. A registered, unrestricted visitor is then asked `y/n` whether to follow, and `y` adds one follower.
+- **Registration.** `registracia()` asks a guest for a username of at least 3 characters that is not taken and a password of at least 4 characters, and repeats each question until the answer is valid.
+- **Go live.** `goLive()` flips a coin: followers grow by 5 to 40 percent or fall by 0 to 30 percent. A fall of more than 25 percent puts a restriction on the account. Guests and restricted users cannot go live.
+- **Collaboration.** `kolaboracia(partner)` gives each of two registered, unrestricted users 2 to 12 percent of the other's follower count and adds each to the other's visitor list.
 
-* registered vs. unregistered users
-* visiting profiles and tracking visitors
-* subscribing/following behavior
-* going live with randomized follower changes
-* automatic restrictions when suspicious activity is detected
+## How it works
 
----
+Everything is in one class, `SlayViber`. Its fields are the username, the password, the follower count, the visitor list and three flags: `streaming`, `isRegistered` and `hasShezgudva` (has a restriction).
 
-## 🎯 Project Goals
+The taken usernames are in a static `vector<string>`, and the random numbers come from one static `mt19937` seeded with the current time, so follower changes differ from run to run. Percentage changes are rounded to the nearest whole follower and the count never goes below zero.
 
-* Implement a full-featured **User class** (`SlayViber`)
-* Apply **OOP principles**: constructors, encapsulation, const-correctness, getters/setters
-* Create a **driver** that tests every method with clear console output
-* Model a “live streaming” event with random outcomes and rule-based restrictions
+`goLive()` sets `streaming` to true, applies the follower change and sets it back to false before it returns, so a livestream starts and ends inside one call. `setShezgudva(true)` also turns `streaming` off. `visit` and `kolaboracia` refuse to act on the same object, and a guest or restricted visitor is still recorded as a visitor but is not offered the follow question.
 
----
+`print()` writes the username, the two status flags, the follower count, the streaming flag and the visitor list. The getters and `setFollowers`, `setStreaming` and `setShezgudva` are defined in the header.
 
-## 🧱 Class: `SlayViber`
+## Example
 
-### Member Variables
+Shortened from `driver.cpp`:
 
-* `std::string username`
-* `std::string password`
-* `bool streaming`
-* `int followers`
-* `bool isRegistered`
-* `bool hasRestriction`
-* `std::vector<std::string> visitors` *(any container is allowed)*
+```cpp
+SlayViber stumari;                     // guest with a generated username
+SlayViber nia("nia", "nia123", 2005);
+SlayViber ani("ani", "ani123", 2020);
 
----
+stumari.visit(nia);                    // recorded as a visitor, cannot follow
+nia.goLive();                          // random follower change
+nia.kolaboracia(ani);                  // both gain followers
 
-## 🛠️ Core Features (Member Functions)
+ani.setShezgudva(true);
+ani.goLive();                          // refused, the account is restricted
 
-### ✅ Constructors
-
-* **Default Constructor**
-
-  * Creates an **unregistered** user (viewer-only).
-  * Has a default/generated username (example: `user4352123412`)
-  * No password, cannot subscribe, etc.
-
-* **Parameterized Constructor**
-
-  * Sets `username`, `password`
-  * Optional/default values:
-
-    * `followers = 0`
-    * `hasRestriction = false`
-
----
-
-### 🖨️ `print()`
-
-Displays user information in a clean, organized format:
-
-* username, followers, registration status
-* streaming status
-* restriction status
-* recent visitors (optional)
-
----
-
-### 👀 `visit(otherUser)`
-
-A user visits another user's profile.
-
-Behavior:
-
-* Shows **limited info** about the visited user *(restriction format is your design)*
-* Adds the visitor’s username to `otherUser.visitors`
-* Visitor chooses whether to **subscribe/follow** the visited user
-
-  * If yes → visited user’s `followers` increases
-
----
-
-### 📝 `registration()`
-
-Interactive registration method for unregistered users:
-
-* prompts user for username/password
-* handles invalid input (e.g., username already taken)
-* changes:
-
-  * `isRegistered = true`
-  * sets valid `username`, `password`
-
----
-
-### 🔴 `goLive()`
-
-Starts a livestream session (if allowed):
-
-* sets `streaming = true`
-* randomly changes followers:
-
-  * **increase** by **5%–40%**
-  * OR **decrease** by **0%–30%**
-* if followers drop by **more than 25%**:
-
-  * `hasRestriction = true`
-  * `streaming = false`
-
-❗ Rule: if `hasRestriction == true`, `goLive()` must **fail safely** (do nothing + print explanation).
-
----
-
-### ⭐ Custom Function (Student-Designed)
-
-You must implement **one extra function** with:
-
-* your own idea + logic
-* must affect **at least 2 member variables**
-
-Examples (choose one concept):
-
-* `resetPasswordAndRestrict()` → changes password + restriction
-* `banForSpam()` → restriction + registration state + streaming off
-* `boostProfile()` → followers increase + streaming on/off toggle
-  *(Your final choice is up to your implementation.)*
-
----
-
-## ✅ Input Handling Requirements
-
-During interactive input, ensure:
-
-* usernames are unique
-* empty/invalid input is rejected
-* restricted users can’t perform forbidden actions
-* subscription is not allowed if visitor is unregistered (recommended rule)
-
----
-
-## 🧪 Testing (Driver Program)
-
-The file `driver.cpp` must:
-
-* create multiple `SlayViber` objects (registered + unregistered)
-* call **every single member function**
-* print step-by-step what happens:
-
-  * before/after state changes
-  * follower counts change
-  * restriction triggers
-  * visitor logs update
-
-A good driver prints messages like:
-
-* “User A visits User B”
-* “User A subscribed / did not subscribe”
-* “User B went live → followers +18%”
-* “Restriction applied → streaming stopped”
-
----
-
-## 📂 Suggested Project Structure
-
-```
-SlayViber/
-│
-├── SlayViber.h
-├── SlayViber.cpp
-├── driver.cpp
-└── README.md
+nia.print();
 ```
 
----
+`driver.cpp` runs without keyboard input. It does not call `registracia()`, and the only visits it makes are by a guest and by a user visiting themselves, neither of which reaches the follow question.
 
-## 🧠 Concepts Demonstrated
+## Build and run
 
-* OOP class design
-* constructors (default + parameterized)
-* encapsulation (getters/setters)
-* const-correctness
-* vectors/containers
-* input validation (interactive mode)
-* randomness in simulation logic
-* rule-based state transitions (restriction/live logic)
+The repository is a Visual Studio solution: open `SlayViber.sln` and run it. With g++:
 
----
+```
+g++ -std=c++17 SlayViber/SlayViber.cpp SlayViber/driver.cpp -o slayviber
+./slayviber
+```
